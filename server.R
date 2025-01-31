@@ -25,7 +25,7 @@ server <- function(input, output) {
           dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
           dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
           as.data.frame()
-        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)) %>%
+        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)+1) %>%
           as.data.frame() %>%
           dplyr::select (AN, TAC.JP.A, RBC.JP.A)
       } else if (input$rbIle == 2){
@@ -35,13 +35,20 @@ server <- function(input, output) {
           dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
           dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
           as.data.frame()
-        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)) %>%
+        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)+1) %>%
           as.data.frame() %>%
           dplyr::select (AN, TAC.JP.SP, RBC.JP.SP)
       }
+      
+      catch %>%
+        dplyr::bind_rows(data.frame(AN = max(catch$AN)+1,
+                                    catch = 10**3*rbc$TAC[rbc$AN == max(catch$AN)+1])) -> catch
+      
+      m.period.calculation <- ifelse(input$rbAvePeriodCalc == 1, 'mean', 'worst_mean')
       m.period <- as.numeric(input$rbAvePeriod)
       var.limit.lo <- as.numeric(input$rbLimLow)
-
+      var.limit.up <- as.numeric(input$rbLimHigh)
+      
       colnames(rbc) = c('AN', 'TAC', 'RBC')
 
       cpue = df_cpue %>% dplyr::select(AN, pred.mean.CPUE) %>%
@@ -50,33 +57,44 @@ server <- function(input, output) {
       colnames(cpue) = c('AN', 'CPUE')
 
       if (input$rbScenar == 1){
-        n_years_sim <- 6
+        n_years_sim <- 8
         cpue <- bind_rows(cpue, data.frame(AN = (max(cpue$AN)+1):(max(cpue$AN)+n_years_sim),
                                                  CPUE = (cpue %>% dplyr::filter(AN >= 1983, AN < 1983+n_years_sim))$CPUE))
       } else if (input$rbScenar == 2){
         n_years_sim <- 30
         cpue <- bind_rows(cpue, data.frame(AN = (max(cpue$AN)+1):(max(cpue$AN)+n_years_sim),
                                                  CPUE = cpue$CPUE[cpue$AN == max(cpue$AN)] - 2))
+      } else if (input$rbScenar == 3){
+        n_years_sim <- 30
+        cpue <- bind_rows(cpue, data.frame(AN = (max(cpue$AN)+1):(max(cpue$AN)+n_years_sim),
+                                           CPUE = cpue$CPUE[cpue$AN == max(cpue$AN)]-4 +
+                                             2*sin((max(cpue$AN)+1):(max(cpue$AN)+n_years_sim)/2 +1.2)))
       }
 
       rbc_loop <- rbc
       catch_loop <- catch
-
-
-      for (j in 1:n_years_sim){
+      
+      for (j in 1:(n_years_sim-1)){
         rbc_loop %>%
           add_row(AN=max(rbc_loop$AN)+1) -> rbc_loop
-
-
+        
+        k <- (max(rbc_loop$AN) - as.numeric(input$slideAppStart)) %% as.numeric(input$slideAppPeriod)
+        
         # RBC ----------------------------------------------------------------
         df_HCR = rbc.fun(rbc=rbc_loop, cpue=cpue, catch=catch_loop,
-                         ref.yrs, cur.yr, m.period,
+                         ref.yrs, cur.yr, m.period, m.period.calculation,
                          var.limit.up, var.limit.lo, var.limit, ratio.cpue.lim,
                          buffer)
-
+        
         #fill recommended biological catch and consider its adopted as TAC
-        rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
-        rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
+        if (k != 0){
+          rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+          rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+        } else {
+          rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
+          rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
+        }
+        
 
         # consider that fishermen take the whole TAC (no impact)
         catch_loop <- bind_rows(catch_loop,
@@ -108,7 +126,8 @@ server <- function(input, output) {
         geom_hline(aes(yintercept = tempList$df_HCR$catch.tar, color = 'Cible'))+
         scale_colour_manual(values = c("green","red"), name="")+
       scale_x_continuous("Années",
-                         breaks = seq(1980, max(tempList$catch$AN), 5))+
+                         breaks = seq(1980, max(tempList$catch$AN), 5),
+                         labels = function(y) paste0(y,"/",substring(y+1, 3)))+
       geom_vline(aes(xintercept = 2026))+
       ylab("Captures (t)")+
       theme(panel.background = element_rect(color = 'black', fill = 'white'),
@@ -131,7 +150,8 @@ server <- function(input, output) {
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.lim, color='Limite'))+
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.tar, color='Cible'))+
         scale_x_continuous("Années",
-                           breaks = seq(1980, max(tempList$catch$AN), 5))+
+                           breaks = seq(1980, max(tempList$catch$AN), 5),
+                           labels = function(y) paste0(y,"/",substring(y+1, 3)))+
         scale_colour_manual(values = c("green","red"), name="")+
         annotate("rect", xmin=c(as.numeric(as.character(ref.yrs[1]))),
                  xmax=c(as.numeric(as.character(ref.yrs[length(ref.yrs)]))),
@@ -159,7 +179,8 @@ server <- function(input, output) {
         scale_colour_manual(values = c("green","red"), name="")+
         scale_x_continuous("Années",
                            breaks = seq(1980, max(tempList$catch$AN), 5),
-                           limits = c(2015, NA))+
+                           limits = c(2015, NA),
+                           labels = function(y) paste0(y,"/",substring(y+1, 3)))+
         geom_vline(aes(xintercept = 2026))+
         ylab("Captures (t)")+
         theme(panel.background = element_rect(color = 'black', fill = 'white'),
@@ -176,7 +197,8 @@ server <- function(input, output) {
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.tar, color='Cible'))+
         scale_x_continuous("Années",
                            breaks = seq(1980, max(tempList$catch$AN), 5),
-                           limits = c(2015, NA))+
+                           limits = c(2015, NA),
+                           labels = function(y) paste0(y,"/",substring(y+1, 3)))+
         scale_colour_manual(values = c("green","red"), name="")+
         annotate("rect", xmin=c(as.numeric(as.character(ref.yrs[1]))),
                  xmax=c(as.numeric(as.character(ref.yrs[length(ref.yrs)]))),

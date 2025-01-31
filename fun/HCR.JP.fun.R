@@ -1,23 +1,66 @@
-####################################"
-### HCR JP SPA functions
-####################################"
+#'#***************************************************************************
+#'@author : Jules SELLES
+#'@update : 2025-01-30
+#'@email : amael.dupaix@mnhn.fr
+#'#***************************************************************************
+#'@description : HCR JP SPA functions
+#'               31.01.2025: ajout m.period.calculation dans rbc.fun
+#'#***************************************************************************
+#'@arguments : @rbc: data.frame, three columns with year (AN) and historical
+#'                               recommended biological catch (RBC, in tons) and 
+#'                               historical TAC (TAC, in tons)
+#'             @cpue: data.frame, two columns with year (AN) and historical
+#'                                values of abundance index (CPUE, in kg/trap)
+#'             @catch: data.frame, two columns with year (AN) and historical
+#'                                 catch (catch, in kg)
+#'             @ref.yrs: vector, of numeric values of the years of the reference
+#'                               period
+#'             @cur.yr: num, year for which we run the HCR
+#'             @m.period: num, number of year over which to average the abundance
+#'                             to produce the recent abundance index
+#'             @m.period.calculation: chr, either 'mean' and the average value is
+#'                                    considered to calculate tje recent abundance
+#'                                    or 'worst_mean' and we consider the worst mean
+#'                                    ex: consider av of 3,2,1, av of 2,1 and 1
+#'                                    and keep the lowest value
+#'             @var.limit.up: num between 0 and 1, percentage of increase allowed
+#'             @var.limit.lo: num between 0 and 1, percentage of decrease allowed
+#'             @var.limit: num between 0 and 1, percentage at which the decrease is not
+#'                         bloqued anymore
+#'             @ratio.cpue.lim: num between 0 and 1, ratio between Itarget and
+#'                              Ilim (currently 0.4)
+#'             @buffer: num, buffer around the cpue and catch, curretly not used
+
 
 # HCR from SESSF harvest strategy seee Little et al. 2011 ---------------------
 
+
+
 rbc.fun <- function(rbc, cpue, catch,
-                    ref.yrs, cur.yr, m.period,
+                    ref.yrs, cur.yr,
+                    m.period,
+                    m.period.calculation = c('mean','worst_mean'),
                     var.limit.up, var.limit.lo, var.limit, ratio.cpue.lim,
                     buffer){
   
-  
-  first.yrs = (cur.yr - m.period + 1) :cur.yr# recent years
+  if (length(m.period.calculation) > 1) m.period.calculation <- m.period.calculation[1]
   
   # Reco last year 
   rbc.last = rbc %>% filter(AN==cur.yr) %>% dplyr::select(contains('RBC'))
   tac.last = rbc %>% filter(AN==cur.yr) %>% dplyr::select(contains('TAC'))
 
-  # Cpue recent mean (4 years window)
-  cpue.recent = cpue %>% filter(AN %in% first.yrs) %>% ungroup()%>% dplyr::summarise(CPUE = mean(CPUE))
+  first.yrs = (cur.yr - m.period + 1) :cur.yr# recent years
+  if(m.period.calculation == 'mean'){
+    # Cpue recent mean (4 years window)
+    cpue.recent = cpue %>% filter(AN %in% first.yrs) %>% ungroup()%>% dplyr::summarise(CPUE = mean(CPUE))
+  } else if (m.period.calculation == 'worst_mean'){
+    cpue.recent <- cpue %>% filter(AN %in% first.yrs)
+    vec <- c()
+    for (i in 1:length(cpue.recent$CPUE)){
+      vec[i] <- mean(cpue.recent$CPUE[i:length(cpue.recent$CPUE)])
+    }
+    cpue.recent <- data.frame(CPUE = min(vec))
+  }
 
   # CPUE limit, target
   cpue.limTar = cpue %>% filter(AN %in% ref.yrs) %>% ungroup()%>%

@@ -15,7 +15,7 @@
 
 # Chargement des librairies ----
 library(shiny)
-
+library(shinythemes)
 library(shinydashboard)
 
 # Le package bslib permet d'appliquer et personnaliser des thèmes Bootstrap 
@@ -65,7 +65,7 @@ HCRArgs <- list(
   var.limit = 0.5, 
   ratio.cpue.lim = 0.4, # ratio to calculate Ilim from Icible
   buffer= 0, # to add a buffer around Icible and ref catch
-  cur.yr = 2023, #year of the last fishing campaign: if cur.yr is 2023, the last fishing
+  cur.yr = 2024, #year of the last fishing campaign: if cur.yr is 2023, the last fishing
   # campaign considered will be 2023-24 and the reco will be done for
   # the following campaign (2024-25)
   model.for.std = "GLM" # which model to use for the CPUE standardization
@@ -81,13 +81,21 @@ limits.low <- list("-10%" = 0.1,
                    "-30%" = 0.3,
                    "-40%" = 0.4,
                    "-50%" = 0.5)
+limits.high <- list("5%" = 0.05,
+                    "10%" = 0.1,
+                    "15%" = 0.15,
+                    "20%" = 0.2,
+                    "25%" = 0.25)
 averaged.period <- list('1 an' = 1,
                         '2 ans' = 2,
                         '3 ans' = 3,
                         '4 ans' = 4,
                         '5 ans' = 5)
+m.period.calc = list('Moyenne' = 1,
+                     'Approche de précaution' = 2)
 scenarios <- list('Chute' = 1,
-                  'Stabilisation' = 2)
+                  'Stabilisation' = 2,
+                  "Oscillations" = 3)
 HCR.application <- list('1 an' = 1,
                         '3 ans' = 3)
 Iles <- list('Amsterdam' = 1,

@@ -43,29 +43,55 @@ ui <- fluidPage(
                # Panneau barre latérale ----
                
                sidebarPanel(width = 3,
+                            h3("Abondance"),
                  fluidRow(
                    column(6,
                           radioButtons(inputId = "rbScenar",
-                                       label = h3("Scénario"),
+                                       label = h4("Scénario"),
                                        choices = scenarios
                           )),
                    column(6,
                           radioButtons(inputId = "rbIle",
-                                       label = h3("Ile"),
+                                       label = h4("Ile"),
                                        choices = Iles
                           ))
                  ),
-                 h2("HCR"),
+                 h3("HCR"),
+                 fluidRow(
+                   column(6,
+                          sliderInput(inputId = "rbAvePeriod",
+                                      label = h4("Moyenne de I sur"),
+                                      min = 1, max = 5, value = 4
+                          )),
+                   column(6,
+                          radioButtons(inputId = "rbAvePeriodCalc",
+                                       label = h4("Calcul de la moyenne"),
+                                       choices = m.period.calc
+                          ))
+                 ),
+                 fluidRow(
+                   column(6,
+                          sliderInput(inputId = "slideAppPeriod",
+                                       label = h4("Périodicité application"),
+                                       min = 1, max = 5, value = 1
+                          )),
+                   column(6,
+                          sliderInput(inputId = "slideAppStart",
+                                       label = h4("Première application"),
+                                       min = 2025, max = 2027,
+                                       value = 2025, sep = ""
+                          ))
+                 ),
                  fluidRow(
                    column(6,
                           radioButtons(inputId = "rbLimLow",
-                                       label = h3("Palier inférieur"),
+                                       label = h4("Palier inférieur"),
                                        choices = limits.low
                           )),
                    column(6,
-                          radioButtons(inputId = "rbAvePeriod",
-                                       label = h3("Période moyenne I"),
-                                       choices = averaged.period
+                          radioButtons(inputId = "rbLimHigh",
+                                       label = h4("Palier supérieur"),
+                                       choices = limits.high
                           ))
                  )
                  ),
@@ -76,9 +102,29 @@ ui <- fluidPage(
                  
                  tabBox(
                    width = NULL,
-                   # tabPanel("Captures",
-                   #          verbatimTextOutput(outputId = "value")),
-                   tabPanel("Indicateur",
+                   tabPanel("Description des paramètres",
+                            h2('Abondance'),
+                            h3('Scénario'),
+                            h5("Chute: réaction de l'HCR dans le cas de la chute d'abondance observée dans les années 1980"),
+                            h5("Stabilisation: réaction de l'HCR dans le cas de la stabilisation de l'abondance à une valeur supérieure à la cible"),
+                            h5("Oscillations: réaction de l'HCR dans le cas d'oscillations de l'abondance"),
+                            h3('Ile'),
+                            h5("Situation à Amsterdam ou Saint-Paul"),
+                            h2('HCR'),
+                            h3('Moyenne de I sur'),
+                            h5("Nombre d'années sur lesquelles on calcule l'indicateur d'abondance récente"),
+                            h3("Calcul de la moyenne"),
+                            h5("Moyenne: moyenne classique utilisée pour calculer l'indicateur d'abondance récente"),
+                            h5("Approche de précaution: exemple pour 3 ans. On calcule la moyenne sur les 3 dernières années, sur les deux dernières années et la valeur de la dernière année. On garde ensuite la valeur la plus basse comme indicateur d'abondance récente."),
+                            h3("Périodicité application"),
+                            h5("Toutes les combien d'années on applique l'HCR"),
+                            h3("Première application"),
+                            h5("Est-ce qu'on applique l'HCR pour la première fois dès l'année prochaine, dans 2 ans ou dans 3 ans. Permet de jouer sur le décallage par rapport à la chute. A un sens uniquement sur la périodicité d'application est supérieure à 1 an."),
+                            h3('Palier inférieur'),
+                            h5("Pourcentage du seuil de limitation d'une baisse de captures"),
+                            h3('Palier supérieur'),
+                            h5("Pourcentage du seuil de limitation d'une augmentation de captures")),
+                   tabPanel("Abondance",
                             plotOutput(outputId = "Indicateur",
                                        height = "calc(90vh - 150px)")),
                    tabPanel("Captures",
