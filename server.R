@@ -132,7 +132,8 @@ server <- function(input, output) {
       ylab("Captures (t)")+
       theme(panel.background = element_rect(color = 'black', fill = 'white'),
             panel.grid = element_line(linetype = "dotted", colour = "grey"),
-            plot.title = element_text(hjust = 0.5))
+            plot.title = element_text(hjust = 0.5),
+            text = element_text(size = 20))
 
 
     })
@@ -159,7 +160,8 @@ server <- function(input, output) {
         ylab('Indice de biomasse (kg/casier)')+
         theme(panel.background = element_rect(fill = "white", colour = "black"),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
-              legend.position = 'bottom')
+              legend.position = 'bottom',
+              text = element_text(size = 20))
       
       
     })
@@ -185,7 +187,8 @@ server <- function(input, output) {
         ylab("Captures (t)")+
         theme(panel.background = element_rect(color = 'black', fill = 'white'),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
-              plot.title = element_text(hjust = 0.5))
+              plot.title = element_text(hjust = 0.5),
+              text = element_text(size = 20))
       
       p_indic <- ggplot() +
         geom_line(data = tempList$cpue %>% dplyr::filter(AN <= 2023),
@@ -195,6 +198,7 @@ server <- function(input, output) {
                   linetype = 'dashed') +
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.lim, color='Limite'))+
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.tar, color='Cible'))+
+        geom_vline(aes(xintercept = 2025))+
         scale_x_continuous("Années",
                            breaks = seq(1980, max(tempList$catch$AN), 5),
                            limits = c(2015, NA),
@@ -206,10 +210,11 @@ server <- function(input, output) {
         ylab('Indice de biomasse (kg/casier)')+
         theme(panel.background = element_rect(fill = "white", colour = "black"),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
-              legend.position = 'bottom')
+              legend.position = 'bottom',
+              text = element_text(size = 20))
       
       
-      ggarrange(p_cap, p_indic,
+      ggarrange(p_indic, p_cap,
                 nrow = 2, labels = "AUTO",
                 common.legend = T)
       
