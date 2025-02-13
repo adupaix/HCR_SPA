@@ -48,7 +48,8 @@ ui <- fluidPage(
                    column(6,
                           radioButtons(inputId = "rbScenar",
                                        label = h4("Scénario"),
-                                       choices = scenarios
+                                       choices = scenarios,
+                                       selected = 2
                           )),
                    column(6,
                           radioButtons(inputId = "rbIle",
