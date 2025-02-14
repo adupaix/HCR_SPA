@@ -20,8 +20,8 @@ server <- function(input, output) {
     
     updateData <- reactive({
       if (input$rbIle == 1){
-        df_cpue <- df_CPUE_A_pred_yr
-        catch = df_SPA_cap_an %>% dplyr::filter(ILE=='Amsterdam') %>% 
+        df_cpue <- cpue_A
+        catch = captures %>% dplyr::filter(ILE=='Amsterdam') %>% 
           dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
           dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
           as.data.frame()
@@ -29,8 +29,8 @@ server <- function(input, output) {
           as.data.frame() %>%
           dplyr::select (AN, TAC.JP.A, RBC.JP.A)
       } else if (input$rbIle == 2){
-        df_cpue <- df_CPUE_SP_pred_yr
-        catch = df_SPA_cap_an %>% dplyr::filter(ILE=='Saint Paul',
+        df_cpue <- cpue_SP
+        catch = captures %>% dplyr::filter(ILE=='Saint Paul',
                                                    QUALITE!='bancdes16milles') %>% 
           dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
           dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
@@ -95,7 +95,6 @@ server <- function(input, output) {
           rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
         }
         
-
         # consider that fishermen take the whole TAC (no impact)
         catch_loop <- bind_rows(catch_loop,
                                 data.frame(AN = max(catch_loop$AN)+1,

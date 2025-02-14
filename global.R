@@ -45,15 +45,12 @@ current_date <- Sys.Date()
 
 # Chargement des données
 TAC_SPA <- read.csv(file='data/TAC_an.csv', header=T, sep=';')
-load(file= "data/df_CPUE_SP_pred_yr.Rdata")
-load(file= "data/df_CPUE_A_pred_yr.Rdata")
-load(file = 'data/df_cap_com.RData')
+cpue_SP <- readRDS('data/cpue_SP.rds')
+cpue_A <- readRDS('data/cpue_A.rds')
+captures <- readRDS('data/captures_annuelles.rds')
 
 # chargement fonctio
 source('fun/HCR.JP.fun.R')
-
-df_SPA_cap_an = df_cap_com %>% group_by(AN_num,AN, ILE, QUALITE) %>%
-  dplyr::summarise(POIDS_LANDED=sum(POIDS_LANDED,na.rm=T), .groups = "keep")
 
 
 HCRArgs <- list(
@@ -65,12 +62,9 @@ HCRArgs <- list(
   var.limit = 0.5, 
   ratio.cpue.lim = 0.4, # ratio to calculate Ilim from Icible
   buffer= 0, # to add a buffer around Icible and ref catch
-  cur.yr = 2024, #year of the last fishing campaign: if cur.yr is 2023, the last fishing
+  cur.yr = 2024 #year of the last fishing campaign: if cur.yr is 2023, the last fishing
   # campaign considered will be 2023-24 and the reco will be done for
   # the following campaign (2024-25)
-  model.for.std = "GLM" # which model to use for the CPUE standardization
-  # one of 'GLM' (method used up to 2324)
-  # or 'GAMM' (including effort creep)
 )
 
 list2env(HCRArgs, globalenv())
