@@ -90,11 +90,24 @@ server <- function(input, output) {
         cpue <- bind_rows(cpue, data.frame(AN = (max(cpue$AN)+1):(max(cpue$AN)+n_years_sim),
                                                  CPUE = cpue$CPUE[cpue$AN == max(cpue$AN)] - 2))
       } else if (input$rbScenar == 3){
-        n_years_sim <- 30
-        cpue <- bind_rows(cpue, data.frame(AN = (max(cpue$AN)+1):(max(cpue$AN)+n_years_sim),
-                                           CPUE = cpue$CPUE[cpue$AN == max(cpue$AN)]-4 +
-                                             2*sin((max(cpue$AN)+1):(max(cpue$AN)+n_years_sim)/2 +1.2)))
+        n_years_sim <- 8
+        # cpue %>%
+        #   filter(AN %in% ref.yrs) -> cpue_tar
+        # cpue_tar <- mean(cpue_tar$CPUE)
+        cpue <- bind_rows(data.frame(AN = (max(cpue$AN)-30):max(cpue$AN),
+                                     CPUE = 10),
+                          data.frame(AN = (max(cpue$AN)+1):(max(cpue$AN)+n_years_sim),
+                                     CPUE = 10 * 0.85 ** seq(1,n_years_sim,1)))
+        catch %>%
+          dplyr::filter(AN %in% ref.yrs) -> catch_tar
+        catch$catch <- mean(catch_tar$catch)
       }
+      # } else if (input$rbScenar == 3){
+      #   n_years_sim <- 30
+      #   cpue <- bind_rows(cpue, data.frame(AN = (max(cpue$AN)+1):(max(cpue$AN)+n_years_sim),
+      #                                      CPUE = cpue$CPUE[cpue$AN == max(cpue$AN)]-4 +
+      #                                        2*sin((max(cpue$AN)+1):(max(cpue$AN)+n_years_sim)/2 +1.2)))
+      # }
 
       rbc_loop <- rbc
       catch_loop <- catch
@@ -241,7 +254,6 @@ server <- function(input, output) {
                            breaks = seq(1980, max(tempList$catch$AN), 5),
                            limits = c(2015, NA),
                            labels = function(y) paste0(y,"/",substring(y+1, 3)))+
-        geom_vline(aes(xintercept = 2026))+
         ylab("Captures (t)")+
         theme(panel.background = element_rect(color = panel_color, fill = 'white',
                                               linewidth = panel_width),
@@ -258,7 +270,6 @@ server <- function(input, output) {
                   linetype = 'dashed') +
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.lim, color='Limite'))+
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.tar, color='Cible'))+
-        geom_vline(aes(xintercept = 2025))+
         scale_x_continuous("Années",
                            breaks = seq(1980, max(tempList$catch$AN), 5),
                            limits = c(2015, NA),
@@ -273,6 +284,13 @@ server <- function(input, output) {
               legend.position = 'bottom',
               text = element_text(size = 15))
       
+      if (tempList$scenario == 1){
+        p_indic <- p_indic + geom_vline(aes(xintercept = 2025))
+        p_cap <- p_cap + geom_vline(aes(xintercept = 2026))
+      } else if (tempList$scenario == 3){
+        p_indic <- p_indic + geom_vline(aes(xintercept = 2028))
+        p_cap <- p_cap + geom_vline(aes(xintercept = 2029))
+      }
       
       ggarrange(p_indic, p_cap,
                 nrow = 2,
