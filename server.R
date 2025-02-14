@@ -111,10 +111,29 @@ server <- function(input, output) {
                          var.limit.up, var.limit.lo, var.limit, ratio.cpue.lim,
                          buffer)
         
-        #fill recommended biological catch and consider its adopted as TAC
-        if (k != 0){
-          rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN) - 1]
-          rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+        #fill recommended biological catch and consider it's adopted as TAC
+        if (k != 0){ # the HCR is not applied this year
+          if (input$rbSortie){ # if there is a mecanism to potentially apply the HCR earlier
+            # get the last cpue year when it was applied
+            last_application_year <- cur.yr - k
+            # compare the current biomass indicator with the biomass indicator on that year
+            cur.cpue <- df_HCR$cpue.recent
+            last_app.cpue <- rbc.fun(rbc=rbc_loop, cpue=cpue, catch=catch_loop,
+                                     ref.yrs, last_application_year,
+                                     m.period, m.period.calculation,
+                                     var.limit.up, var.limit.lo, var.limit, ratio.cpue.lim,
+                                     buffer)$cpue.recent
+            if (cur.cpue / last_app.cpue < (1 - input$sliderPourcentSortie/100)){
+              rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
+              rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
+            } else {
+              rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+              rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+            }
+          } else {
+            rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+            rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+          }
         } else {
           rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
           rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
