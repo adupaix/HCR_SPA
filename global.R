@@ -45,8 +45,8 @@ current_date <- Sys.Date()
 
 # Chargement des données
 TAC_SPA <- read.csv(file='data/TAC_an.csv', header=T, sep=';')
-cpue_SP <- readRDS('data/cpue_SP.rds')
-cpue_A <- readRDS('data/cpue_A.rds')
+cpue_SP <- readRDS('data/cpue_SP_zone.rds')
+cpue_A <- readRDS('data/cpue_A_zone.rds')
 captures <- readRDS('data/captures_annuelles.rds')
 
 # chargement fonctio
@@ -94,6 +94,9 @@ HCR.application <- list('1 an' = 1,
                         '3 ans' = 3)
 Iles <- list('Amsterdam' = 1,
             'Saint Paul' = 2)
+Zones <- list('Plateau' = 'both',
+             'Côtière' = 'coastal',
+             'Profonde' = 'deep')
 
 
 # duree des simulations

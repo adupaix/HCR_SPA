@@ -45,16 +45,21 @@ ui <- fluidPage(
                sidebarPanel(width = 3,
                             h3("Abondance"),
                  fluidRow(
-                   column(6,
+                   column(4,
                           radioButtons(inputId = "rbScenar",
                                        label = h4("Scénario"),
                                        choices = scenarios,
                                        selected = 2
                           )),
-                   column(6,
+                   column(4,
                           radioButtons(inputId = "rbIle",
                                        label = h4("Ile"),
                                        choices = Iles
+                          )),
+                   column(4,
+                          radioButtons(inputId = "rbZone",
+                                       label = h4("Zone"),
+                                       choices = Zones
                           ))
                  ),
                  h3("HCR"),
@@ -111,6 +116,8 @@ ui <- fluidPage(
                             h5("Oscillations: réaction de l'HCR dans le cas d'oscillations de l'abondance"),
                             h3('Ile'),
                             h5("Situation à Amsterdam ou Saint-Paul"),
+                            h3('Zone'),
+                            h5("Plateau péri-insulaire complet ou application par zone (côtière ou profonde)"),
                             h2('HCR'),
                             h3('Moyenne de I sur'),
                             h5("Nombre d'années sur lesquelles on calcule l'indicateur d'abondance récente"),

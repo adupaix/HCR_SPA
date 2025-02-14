@@ -25,7 +25,7 @@ server <- function(input, output) {
           dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
           dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
           as.data.frame()
-        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)+1) %>%
+        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN)+1) %>%
           as.data.frame() %>%
           dplyr::select (AN, TAC.JP.A, RBC.JP.A)
       } else if (input$rbIle == 2){
@@ -35,7 +35,7 @@ server <- function(input, output) {
           dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
           dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
           as.data.frame()
-        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)+1) %>%
+        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN)+1) %>%
           as.data.frame() %>%
           dplyr::select (AN, TAC.JP.SP, RBC.JP.SP)
       }
@@ -51,7 +51,9 @@ server <- function(input, output) {
       
       colnames(rbc) = c('AN', 'TAC', 'RBC')
 
-      cpue = df_cpue %>% dplyr::select(AN, pred.mean.CPUE) %>%
+      cpue = df_cpue %>%
+        dplyr::filter(ZONE == input$rbZone) %>%
+        dplyr::select(AN, pred.mean.CPUE) %>%
         dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
         as.data.frame()
       colnames(cpue) = c('AN', 'CPUE')
@@ -126,14 +128,14 @@ server <- function(input, output) {
         geom_hline(aes(yintercept = tempList$df_HCR$catch.tar, color = 'Cible'))+
         scale_colour_manual(values = c("green","red"), name="")+
       scale_x_continuous("Années",
-                         breaks = seq(1980, max(tempList$catch$AN), 5),
+                         breaks = seq(1980, max(tempList$catch$AN), 10),
                          labels = function(y) paste0(y,"/",substring(y+1, 3)))+
       geom_vline(aes(xintercept = 2026))+
       ylab("Captures (t)")+
       theme(panel.background = element_rect(color = 'black', fill = 'white'),
             panel.grid = element_line(linetype = "dotted", colour = "grey"),
             plot.title = element_text(hjust = 0.5),
-            text = element_text(size = 20))
+            text = element_text(size = 18))
 
 
     })
@@ -151,7 +153,7 @@ server <- function(input, output) {
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.lim, color='Limite'))+
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.tar, color='Cible'))+
         scale_x_continuous("Années",
-                           breaks = seq(1980, max(tempList$catch$AN), 5),
+                           breaks = seq(1980, max(tempList$catch$AN), 10),
                            labels = function(y) paste0(y,"/",substring(y+1, 3)))+
         scale_colour_manual(values = c("green","red"), name="")+
         annotate("rect", xmin=c(as.numeric(as.character(ref.yrs[1]))),
@@ -161,7 +163,7 @@ server <- function(input, output) {
         theme(panel.background = element_rect(fill = "white", colour = "black"),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               legend.position = 'bottom',
-              text = element_text(size = 20))
+              text = element_text(size = 18))
       
       
     })
@@ -203,7 +205,7 @@ server <- function(input, output) {
                                               linewidth = panel_width),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               plot.title = element_text(hjust = 0.5),
-              text = element_text(size = 20))+
+              text = element_text(size = 15))+
         guides(fill = 'none')
       
       p_indic <- ggplot() +
@@ -227,11 +229,11 @@ server <- function(input, output) {
         theme(panel.background = element_rect(fill = "white", colour = 'black'),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               legend.position = 'bottom',
-              text = element_text(size = 20))
+              text = element_text(size = 15))
       
       
       ggarrange(p_indic, p_cap,
-                nrow = 2, labels = "AUTO",
+                nrow = 2,
                 common.legend = T)
       
     })
