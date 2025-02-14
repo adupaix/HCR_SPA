@@ -44,7 +44,7 @@ ui <- fluidPage(
                # Panneau barre latérale ----
                
                sidebarPanel(width = 3,
-                            h4("Abondance"),
+                            h3("Abondance"),
                  fluidRow(
                    column(4,
                           radioButtons(inputId = "rbScenar",
@@ -63,7 +63,7 @@ ui <- fluidPage(
                                        choices = Zones
                           ))
                  ),
-                 h4("HCR"),
+                 h3("HCR"),
                  fluidRow(
                    column(6,
                           sliderInput(inputId = "rbAvePeriod",
@@ -78,17 +78,19 @@ ui <- fluidPage(
                  ),
                  fluidRow(
                    column(6,
-                          radioButtons(inputId = "rbLimLow",
-                                       label = h5("Palier inférieur"),
-                                       choices = limits.low
+                          sliderInput(inputId = "sliderLimLow",
+                                      label = h5("Palier inférieur"),
+                                      min = -50, max = -10, value = -10,
+                                      step = 5
                           )),
                    column(6,
-                          radioButtons(inputId = "rbLimHigh",
-                                       label = h5("Palier supérieur"),
-                                       choices = limits.high
+                          sliderInput(inputId = "sliderLimHigh",
+                                      label = h5("Palier supérieur"),
+                                      min = 5, max = 25, value = 5,
+                                      step = 5
                           ))
                  ),
-                 h4('Périodicité'),
+                 h3('Périodicité'),
                  fluidRow(
                    column(6,
                           sliderInput(inputId = "slideAppPeriod",
@@ -112,7 +114,8 @@ ui <- fluidPage(
                    column(6,
                           sliderInput(inputId = "sliderPourcentSortie",
                                       label = h5("% de baisse provoquant la sortie"),
-                                      min = 10, max = 50, value = 10
+                                      min = 0, max = 50, value = 10,
+                                      step = 10
                           ))
                  )
                  ),
@@ -134,24 +137,24 @@ ui <- fluidPage(
                             h3('Zone'),
                             h5("Plateau péri-insulaire complet ou application par zone (côtière ou profonde)"),
                             h2('HCR'),
-                            h4('Moyenne de I sur'),
+                            h3('Moyenne de I sur'),
                             h5("Nombre d'années sur lesquelles on calcule l'indicateur d'abondance récente"),
-                            h4("Calcul de la moyenne"),
+                            h3("Calcul de la moyenne"),
                             h5("Moyenne: moyenne classique utilisée pour calculer l'indicateur d'abondance récente"),
                             h5("Approche de précaution: exemple pour 3 ans. On calcule la moyenne sur les 3 dernières années, sur les deux dernières années et la valeur de la dernière année. On garde ensuite la valeur la plus basse comme indicateur d'abondance récente."),
-                            h4('Palier inférieur'),
+                            h3('Palier inférieur'),
                             h5("Pourcentage du seuil de limitation d'une baisse de captures"),
-                            h4('Palier supérieur'),
+                            h3('Palier supérieur'),
                             h5("Pourcentage du seuil de limitation d'une augmentation de captures"),
                             h2('Périodicité'),
-                            h4("Application tous les"),
+                            h3("Application tous les"),
                             h5("Toutes les combien d'années on applique l'HCR"),
-                            h4("Première application"),
+                            h3("Première application"),
                             h5("Est-ce qu'on applique l'HCR pour la première fois dès l'année prochaine, dans 2 ans ou dans 3 ans. Permet de jouer sur le décallage par rapport à la chute. A un sens uniquement sur la périodicité d'application est supérieure à 1 an."),
-                            h4("Mécanisme de sortie"),
+                            h3("Mécanisme de sortie"),
                             h5("Dans le cas d'une application de l'HCR qui ne serait pas tous les ans, est-ce qu'on met en place un mécanisme qui permet d'avancer l'application de l'HCR si certaines conditions sont remplies. La condition testée ici est une baisse de plus de n % de l'indicateur d'abondance."),
-                            h4("% de baisse provoquand la sortie"),
-                            h5("Dans le cas où 'Mécanisme de sortie' vaut oui, quel pourcentage de baisse cumulée provoque une application plus rapide de l'HCR.")
+                            h3("% de baisse provoquant la sortie"),
+                            h5("Dans le cas où 'Mécanisme de sortie' vaut oui, quel pourcentage de baisse cumulée provoque une application plus rapide de l'HCR. Noter que dans le cas d'un pourcentage à 0%, on n'applique l'HCR qu'en cas de baisse de l'indicateur.")
                             ),
                    tabPanel("Abondance",
                             plotOutput(outputId = "Indicateur",

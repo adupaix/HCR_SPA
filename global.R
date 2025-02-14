@@ -70,16 +70,6 @@ HCRArgs <- list(
 list2env(HCRArgs, globalenv())
 
 # liste des choix
-limits.low <- list("-10%" = 0.1,
-                   "-20%" = 0.2,
-                   "-30%" = 0.3,
-                   "-40%" = 0.4,
-                   "-50%" = 0.5)
-limits.high <- list("5%" = 0.05,
-                    "10%" = 0.1,
-                    "15%" = 0.15,
-                    "20%" = 0.2,
-                    "25%" = 0.25)
 averaged.period <- list('1 an' = 1,
                         '2 ans' = 2,
                         '3 ans' = 3,

@@ -71,8 +71,8 @@ server <- function(input, output) {
       
       m.period.calculation <- ifelse(input$rbAvePeriodCalc == 1, 'mean', 'worst_mean')
       m.period <- as.numeric(input$rbAvePeriod)
-      var.limit.lo <- as.numeric(input$rbLimLow)
-      var.limit.up <- as.numeric(input$rbLimHigh)
+      var.limit.lo <- -as.numeric(input$sliderLimLow)/100
+      var.limit.up <- as.numeric(input$sliderLimHigh)/100
 
       cpue = df_cpue %>%
         dplyr::filter(ZONE == input$rbZone) %>%
