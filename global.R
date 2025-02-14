@@ -79,7 +79,7 @@ m.period.calc = list('Moyenne' = 1,
                      'Approche de précaution' = 2)
 scenarios <- list('Chute' = 1,
                   'Stabilisation' = 2,
-                  "Oscillations" = 3)
+                  'Cst puis chute' = 3)
 HCR.application <- list('1 an' = 1,
                         '3 ans' = 3)
 Iles <- list('Amsterdam' = 1,

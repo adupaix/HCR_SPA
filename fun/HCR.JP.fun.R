@@ -102,7 +102,8 @@ rbc.fun <- function(rbc, cpue, catch,
                                     (1+var.limit.up[1]) * tac.last,
                                     ifelse( RBC <= (1-var.limit.lo) * tac.last & RBC > (1-var.limit)*tac.last,
                                             (1-var.limit.lo) *  tac.last,
-                                            RBC  )))
+                                            ifelse(RBC <= 0, 0.01,
+                                                    RBC))))
     )
 
   return(df_ref)
