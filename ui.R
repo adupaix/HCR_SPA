@@ -109,6 +109,7 @@ ui <- fluidPage(
                  tabBox(
                    width = NULL,
                    tabPanel("Description des paramètres",
+                            h5("Attention, noter qu'en l'absence d'un modèle d'évaluation de stock robuste, l'abondance est fixée à priori. Elle ne réagit pas à une modification des captures.",style='color:red'),
                             h2('Abondance'),
                             h3('Scénario'),
                             h5("Chute: réaction de l'HCR dans le cas de la chute d'abondance observée dans les années 1980"),
