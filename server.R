@@ -20,38 +20,63 @@ server <- function(input, output) {
     
     updateData <- reactive({
       if (input$rbIle == 1){
-        df_cpue <- df_CPUE_A_pred_yr
-        catch = df_SPA_cap_an %>% dplyr::filter(ILE=='Amsterdam') %>% 
-          dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
-          dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
-          as.data.frame()
-        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)+1) %>%
-          as.data.frame() %>%
-          dplyr::select (AN, TAC.JP.A, RBC.JP.A)
+        df_cpue <- cpue_A
+        catch = captures %>% dplyr::filter(ILE=='Amsterdam') 
+        
+        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN)+1) %>%
+          as.data.frame() 
+        if (input$rbZone == 'both'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.A, RBC.JP.A) -> rbc
+        } else if (input$rbZone == 'coastal'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.A.cotier, RBC.JP.A.cotier) -> rbc
+        } else if (input$rbZone == 'deep'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.A.profond, RBC.JP.A.profond) -> rbc
+        }
       } else if (input$rbIle == 2){
-        df_cpue <- df_CPUE_SP_pred_yr
-        catch = df_SPA_cap_an %>% dplyr::filter(ILE=='Saint Paul',
-                                                   QUALITE!='bancdes16milles') %>% 
-          dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
-          dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
+        df_cpue <- cpue_SP
+        catch = captures %>% dplyr::filter(ILE=='Saint Paul',
+                                                   QUALITE!='bancdes16milles')
+        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN)+1) %>%
           as.data.frame()
-        rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN_num)+1) %>%
-          as.data.frame() %>%
-          dplyr::select (AN, TAC.JP.SP, RBC.JP.SP)
+        if (input$rbZone == 'both'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.SP, RBC.JP.SP) -> rbc
+        } else if (input$rbZone == 'coastal'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.SP.cotier, RBC.JP.SP.cotier) -> rbc
+        } else if (input$rbZone == 'deep'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.SP.profond, RBC.JP.SP.profond) -> rbc
+        }
+      }
+      if (input$rbZone != 'both'){
+        catch %>%
+          dplyr::filter(QUALITE == ifelse(input$rbZone == 'coastal',
+                                          'cotiere',
+                                          'profonde')) -> catch
       }
       
+      colnames(rbc) = c('AN', 'TAC', 'RBC')
+      
       catch %>%
-        dplyr::bind_rows(data.frame(AN = max(catch$AN)+1,
-                                    catch = 10**3*rbc$TAC[rbc$AN == max(catch$AN)+1])) -> catch
+        dplyr::group_by(AN) %>%
+        dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
+        dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
+        as.data.frame() %>%
+        dplyr::bind_rows(data.frame(AN = max(.$AN)+1,
+                                    catch = 10**3*rbc$TAC[rbc$AN == max(.$AN)+1])) -> catch
       
       m.period.calculation <- ifelse(input$rbAvePeriodCalc == 1, 'mean', 'worst_mean')
       m.period <- as.numeric(input$rbAvePeriod)
-      var.limit.lo <- as.numeric(input$rbLimLow)
-      var.limit.up <- as.numeric(input$rbLimHigh)
-      
-      colnames(rbc) = c('AN', 'TAC', 'RBC')
+      var.limit.lo <- -as.numeric(input$sliderLimLow)/100
+      var.limit.up <- as.numeric(input$sliderLimHigh)/100
 
-      cpue = df_cpue %>% dplyr::select(AN, pred.mean.CPUE) %>%
+      cpue = df_cpue %>%
+        dplyr::filter(ZONE == input$rbZone) %>%
+        dplyr::select(AN, pred.mean.CPUE) %>%
         dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
         as.data.frame()
       colnames(cpue) = c('AN', 'CPUE')
@@ -86,16 +111,34 @@ server <- function(input, output) {
                          var.limit.up, var.limit.lo, var.limit, ratio.cpue.lim,
                          buffer)
         
-        #fill recommended biological catch and consider its adopted as TAC
-        if (k != 0){
-          rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN) - 1]
-          rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+        #fill recommended biological catch and consider it's adopted as TAC
+        if (k != 0){ # the HCR is not applied this year
+          if (input$rbSortie){ # if there is a mecanism to potentially apply the HCR earlier
+            # get the last cpue year when it was applied
+            last_application_year <- cur.yr - k
+            # compare the current biomass indicator with the biomass indicator on that year
+            cur.cpue <- df_HCR$cpue.recent
+            last_app.cpue <- rbc.fun(rbc=rbc_loop, cpue=cpue, catch=catch_loop,
+                                     ref.yrs, last_application_year,
+                                     m.period, m.period.calculation,
+                                     var.limit.up, var.limit.lo, var.limit, ratio.cpue.lim,
+                                     buffer)$cpue.recent
+            if (cur.cpue / last_app.cpue < (1 - input$sliderPourcentSortie/100)){
+              rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
+              rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
+            } else {
+              rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+              rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+            }
+          } else {
+            rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+            rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN) - 1]
+          }
         } else {
           rbc_loop$TAC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
           rbc_loop$RBC[rbc_loop$AN == max(rbc_loop$AN)] <- round(df_HCR$RBC.rec)
         }
         
-
         # consider that fishermen take the whole TAC (no impact)
         catch_loop <- bind_rows(catch_loop,
                                 data.frame(AN = max(catch_loop$AN)+1,
@@ -127,14 +170,14 @@ server <- function(input, output) {
         geom_hline(aes(yintercept = tempList$df_HCR$catch.tar, color = 'Cible'))+
         scale_colour_manual(values = c("green","red"), name="")+
       scale_x_continuous("Années",
-                         breaks = seq(1980, max(tempList$catch$AN), 5),
+                         breaks = seq(1980, max(tempList$catch$AN), 10),
                          labels = function(y) paste0(y,"/",substring(y+1, 3)))+
       geom_vline(aes(xintercept = 2026))+
       ylab("Captures (t)")+
       theme(panel.background = element_rect(color = 'black', fill = 'white'),
             panel.grid = element_line(linetype = "dotted", colour = "grey"),
             plot.title = element_text(hjust = 0.5),
-            text = element_text(size = 20))
+            text = element_text(size = 18))
 
 
     })
@@ -152,7 +195,7 @@ server <- function(input, output) {
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.lim, color='Limite'))+
         geom_hline(data= tempList$df_HCR, aes(yintercept = cpue.tar, color='Cible'))+
         scale_x_continuous("Années",
-                           breaks = seq(1980, max(tempList$catch$AN), 5),
+                           breaks = seq(1980, max(tempList$catch$AN), 10),
                            labels = function(y) paste0(y,"/",substring(y+1, 3)))+
         scale_colour_manual(values = c("green","red"), name="")+
         annotate("rect", xmin=c(as.numeric(as.character(ref.yrs[1]))),
@@ -162,7 +205,7 @@ server <- function(input, output) {
         theme(panel.background = element_rect(fill = "white", colour = "black"),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               legend.position = 'bottom',
-              text = element_text(size = 20))
+              text = element_text(size = 18))
       
       
     })
@@ -204,7 +247,7 @@ server <- function(input, output) {
                                               linewidth = panel_width),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               plot.title = element_text(hjust = 0.5),
-              text = element_text(size = 20))+
+              text = element_text(size = 15))+
         guides(fill = 'none')
       
       p_indic <- ggplot() +
@@ -228,11 +271,11 @@ server <- function(input, output) {
         theme(panel.background = element_rect(fill = "white", colour = 'black'),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               legend.position = 'bottom',
-              text = element_text(size = 20))
+              text = element_text(size = 15))
       
       
       ggarrange(p_indic, p_cap,
-                nrow = 2, labels = "AUTO",
+                nrow = 2,
                 common.legend = T)
       
     })
