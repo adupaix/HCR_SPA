@@ -106,7 +106,8 @@ server <- function(input, output) {
       list(catch = catch_loop,
            rbc = rbc_loop,
            cpue = cpue,
-           df_HCR = df_HCR)
+           df_HCR = df_HCR,
+           scenario = input$rbScenar)
       
     })
   
@@ -120,8 +121,8 @@ server <- function(input, output) {
         geom_histogram(data = tempList$catch,
                        aes(x = AN, y = catch/10**3),
                        stat = 'identity')+
-      geom_line(data = tempList$rbc, aes(x=AN, y=TAC),
-                color = "darkblue", linewidth = 1.5)+
+      # geom_line(data = tempList$rbc, aes(x=AN, y=TAC),
+      #           color = "darkblue", linewidth = 1.5)+
         geom_hline(aes(yintercept = tempList$df_HCR$catch.max, color = 'Limite'))+
         geom_hline(aes(yintercept = tempList$df_HCR$catch.tar, color = 'Cible'))+
         scale_colour_manual(values = c("green","red"), name="")+
@@ -170,12 +171,26 @@ server <- function(input, output) {
       
       tempList <- updateData()
       
+      if (tempList$scenario == "1" & tempList$catch[tempList$catch$AN == 2026,'catch']/10**3 > 1.05 * tempList$df_HCR$catch.tar){
+        panel_color <- "#950606"
+        panel_width <- 2
+      } else if (tempList$scenario == "1" & tempList$catch[tempList$catch$AN == 2026,'catch']/10**3 <= 1.05 * tempList$df_HCR$catch.tar) {
+        panel_color <- "darkgreen"
+        panel_width <- 2
+      } else {
+        panel_color <- 'grey40'
+        panel_width <- .5
+      }
+      
       p_cap <- ggplot()+
-        geom_histogram(data = tempList$catch,
-                       aes(x = AN, y = catch/10**3),
+        geom_histogram(data = tempList$catch %>%
+                         dplyr::mutate(col = AN == 2026),
+                       aes(x = AN, y = catch/10**3,
+                           fill = col),
                        stat = 'identity')+
-        geom_line(data = tempList$rbc, aes(x=AN, y=TAC),
-                  color = "darkblue", linewidth = 1.5)+
+        scale_fill_manual(values = c('grey40', panel_color))+
+        # geom_line(data = tempList$rbc, aes(x=AN, y=TAC),
+        #           color = "darkblue", linewidth = 1.5)+
         geom_hline(aes(yintercept = tempList$df_HCR$catch.max, color = 'Limite'))+
         geom_hline(aes(yintercept = tempList$df_HCR$catch.tar, color = 'Cible'))+
         scale_colour_manual(values = c("green","red"), name="")+
@@ -185,10 +200,12 @@ server <- function(input, output) {
                            labels = function(y) paste0(y,"/",substring(y+1, 3)))+
         geom_vline(aes(xintercept = 2026))+
         ylab("Captures (t)")+
-        theme(panel.background = element_rect(color = 'black', fill = 'white'),
+        theme(panel.background = element_rect(color = panel_color, fill = 'white',
+                                              linewidth = panel_width),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               plot.title = element_text(hjust = 0.5),
-              text = element_text(size = 20))
+              text = element_text(size = 20))+
+        guides(fill = 'none')
       
       p_indic <- ggplot() +
         geom_line(data = tempList$cpue %>% dplyr::filter(AN <= 2023),
@@ -208,7 +225,7 @@ server <- function(input, output) {
                  xmax=c(as.numeric(as.character(ref.yrs[length(ref.yrs)]))),
                  ymin=0, ymax=max(tempList$cpue$CPUE), alpha=0.2, fill="blue")+
         ylab('Indice de biomasse (kg/casier)')+
-        theme(panel.background = element_rect(fill = "white", colour = "black"),
+        theme(panel.background = element_rect(fill = "white", colour = 'black'),
               panel.grid = element_line(linetype = "dotted", colour = "grey"),
               legend.position = 'bottom',
               text = element_text(size = 20))
