@@ -21,35 +21,58 @@ server <- function(input, output) {
     updateData <- reactive({
       if (input$rbIle == 1){
         df_cpue <- cpue_A
-        catch = captures %>% dplyr::filter(ILE=='Amsterdam') %>% 
-          dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
-          dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
-          as.data.frame()
+        catch = captures %>% dplyr::filter(ILE=='Amsterdam') 
+        
         rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN)+1) %>%
-          as.data.frame() %>%
-          dplyr::select (AN, TAC.JP.A, RBC.JP.A)
+          as.data.frame() 
+        if (input$rbZone == 'both'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.A, RBC.JP.A) -> rbc
+        } else if (input$rbZone == 'coastal'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.A.cotier, RBC.JP.A.cotier) -> rbc
+        } else if (input$rbZone == 'deep'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.A.profond, RBC.JP.A.profond) -> rbc
+        }
       } else if (input$rbIle == 2){
         df_cpue <- cpue_SP
         catch = captures %>% dplyr::filter(ILE=='Saint Paul',
-                                                   QUALITE!='bancdes16milles') %>% 
-          dplyr::group_by(AN) %>% dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
-          dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
-          as.data.frame()
+                                                   QUALITE!='bancdes16milles')
         rbc <- TAC_SPA %>% filter(AN<=max(df_cpue$AN)+1) %>%
-          as.data.frame() %>%
-          dplyr::select (AN, TAC.JP.SP, RBC.JP.SP)
+          as.data.frame()
+        if (input$rbZone == 'both'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.SP, RBC.JP.SP) -> rbc
+        } else if (input$rbZone == 'coastal'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.SP.cotier, RBC.JP.SP.cotier) -> rbc
+        } else if (input$rbZone == 'deep'){
+          rbc %>%
+            dplyr::select (AN, TAC.JP.SP.profond, RBC.JP.SP.profond) -> rbc
+        }
+      }
+      if (input$rbZone != 'both'){
+        catch %>%
+          dplyr::filter(QUALITE == ifelse(input$rbZone == 'coastal',
+                                          'cotiere',
+                                          'profonde')) -> catch
       }
       
+      colnames(rbc) = c('AN', 'TAC', 'RBC')
+      
       catch %>%
-        dplyr::bind_rows(data.frame(AN = max(catch$AN)+1,
-                                    catch = 10**3*rbc$TAC[rbc$AN == max(catch$AN)+1])) -> catch
+        dplyr::group_by(AN) %>%
+        dplyr::summarise(catch = sum(POIDS_LANDED)) %>%
+        dplyr::mutate(AN = as.numeric(as.character(AN))) %>%
+        as.data.frame() %>%
+        dplyr::bind_rows(data.frame(AN = max(.$AN)+1,
+                                    catch = 10**3*rbc$TAC[rbc$AN == max(.$AN)+1])) -> catch
       
       m.period.calculation <- ifelse(input$rbAvePeriodCalc == 1, 'mean', 'worst_mean')
       m.period <- as.numeric(input$rbAvePeriod)
       var.limit.lo <- as.numeric(input$rbLimLow)
       var.limit.up <- as.numeric(input$rbLimHigh)
-      
-      colnames(rbc) = c('AN', 'TAC', 'RBC')
 
       cpue = df_cpue %>%
         dplyr::filter(ZONE == input$rbZone) %>%
