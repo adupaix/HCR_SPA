@@ -20,8 +20,8 @@ ui <- fluidPage(
   
   # La police du titre est automatiquement grande
   titlePanel(fluidRow(
-    column(11,"Réponse de différentes paramétrisation de l'HCR à des variations d'abondance",
-           h5("Attention, noter qu'en l'absence d'un modèle d'évaluation de stock robuste, l'abondance est fixée à priori. Elle ne réagit donc pas à une modification des captures.",style='color:red')),
+    column(11,"Réponse de différentes paramétrisation de l'HCR à différents scénarios d'abondance",
+           h5("Attention, noter qu'en l'absence d'un modèle d'évaluation de stock robuste, le scénario d'abondance est fixé et ne réagit donc pas à une modification des captures.",style='color:red')),
     column(1,img(height = 60, src = 'logoMNHN.png'))
     
   )),
@@ -127,7 +127,7 @@ ui <- fluidPage(
                  tabBox(
                    width = NULL,
                    tabPanel("Description des paramètres",
-                            h2('Abondance'),
+                            h1('1.Scénario d\'abondance'),
                             h3('Scénario'),
                             p(strong("Historique puis chute"), ": réaction de l'HCR dans le cas de la chute d'abondance observée dans les années 1980. On considère la série historique des CPUE et captures comme base."),
                             p(strong("Historique puis stabilisation"),": réaction de l'HCR dans le cas de la stabilisation de l'abondance à une valeur supérieure à la cible. On considère la série historique des CPUE et captures comme base."),
@@ -137,7 +137,9 @@ ui <- fluidPage(
                             p("Situation à Amsterdam ou Saint-Paul"),
                             h3('Zone'),
                             p("Plateau péri-insulaire complet ou application par zone (côtière ou profonde)"),
-                            h2('HCR'),
+                            h1('2.HCR'),
+                            h2('2.1.Fixation du TAC'),
+                            h3(p(tags$u("(i) Valeur du TAC"))),
                             h3('Moyenne de I sur'),
                             p("Nombre d'années sur lesquelles on calcule l'indicateur d'abondance récente"),
                             h3("Calcul de la moyenne"),
@@ -147,15 +149,16 @@ ui <- fluidPage(
                             p("Pourcentage du seuil de limitation d'une baisse de captures"),
                             h3('Palier supérieur'),
                             p("Pourcentage du seuil de limitation d'une augmentation de captures"),
-                            h2('Périodicité'),
+                            h3(p(tags$u(' (ii) Périodicité'))),
                             h3("Application tous les"),
                             p("Toutes les combien d'années on applique l'HCR"),
                             h3("Première application"),
-                            p("Est-ce qu'on applique l'HCR pour la première fois dès l'année prochaine, dans 2 ans ou dans 3 ans. Permet de jouer sur le décallage par rapport à la chute. A un sens uniquement sur la périodicité d'application est supérieure à 1 an."),
+                            p("Est-ce qu'on applique l'HCR pour la première fois dès l'année prochaine, dans 2 ans ou dans 3 ans. Permet de jouer sur le décallage par rapport à la chute. A un sens uniquement si la périodicité d'application est supérieure à 1 an."),
+                            h2("2.2.Processus de révision du TAC"),
                             h3("Mécanisme de sortie"),
-                            p("Dans le cas d'une application de l'HCR qui ne serait pas tous les ans, est-ce qu'on met en place un mécanisme qui permet d'avancer l'application de l'HCR si certaines conditions sont remplies. La condition testée ici est une baisse de plus de n % de l'indicateur d'abondance."),
+                            p("Possibilité de révision du TAC au cours de la période pluri-annuelle conditionnellement à la condition suivante"),
                             h3("% de baisse provoquant la sortie"),
-                            p("Dans le cas où 'Mécanisme de sortie' vaut oui, quel pourcentage de baisse cumulée provoque une application plus rapide de l'HCR. Noter que dans le cas d'un pourcentage à 0%, on n'applique l'HCR qu'en cas de baisse de l'indicateur.")
+                            p("Si 'Mécanisme de sortie' vaut oui, la révision du TAC est déclénchée par un % de baisse de cumulée calculée par rapport à l'indicateur d'abondance lors de la fixation du TAC. Noter que dans le cas d'un pourcentage à 0%, le TAC est révisé dès que l'indicateur baisse.")
                             ),
                    tabPanel("Abondance",
                             plotOutput(outputId = "Indicateur",
