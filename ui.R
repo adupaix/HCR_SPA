@@ -44,7 +44,7 @@ ui <- fluidPage(
                # Panneau barre latérale ----
                
                sidebarPanel(width = 3,
-                            h2("Abondance"),
+                            h2("Scénario d'abondance"),
                  fluidRow(
                    column(4,
                           radioButtons(inputId = "rbScenar",
