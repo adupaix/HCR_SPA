@@ -44,7 +44,7 @@ ui <- fluidPage(
                # Panneau barre latérale ----
                
                sidebarPanel(width = 3,
-                            h3("Abondance"),
+                            h2("Abondance"),
                  fluidRow(
                    column(4,
                           radioButtons(inputId = "rbScenar",
@@ -63,7 +63,8 @@ ui <- fluidPage(
                                        choices = Zones
                           ))
                  ),
-                 h3("HCR"),
+                 h2("HCR"),
+                 h3("Fixation du TAC"),
                  fluidRow(
                    column(6,
                           sliderInput(inputId = "rbAvePeriod",
@@ -90,7 +91,6 @@ ui <- fluidPage(
                                       step = 5
                           ))
                  ),
-                 h3('Périodicité'),
                  fluidRow(
                    column(6,
                           sliderInput(inputId = "slideAppPeriod",
@@ -104,6 +104,7 @@ ui <- fluidPage(
                                        value = 2025, sep = ""
                           ))
                  ),
+                 h3('Révision du TAC'),
                  fluidRow(
                    column(6,
                           radioButtons(inputId = "rbSortie",
@@ -158,7 +159,7 @@ ui <- fluidPage(
                             h3("Mécanisme de sortie"),
                             p("Possibilité de révision du TAC au cours de la période pluri-annuelle conditionnellement à la condition suivante"),
                             h3("% de baisse provoquant la sortie"),
-                            p("Si 'Mécanisme de sortie' vaut oui, la révision du TAC est déclénchée par un % de baisse de cumulée calculée par rapport à l'indicateur d'abondance lors de la fixation du TAC. Noter que dans le cas d'un pourcentage à 0%, le TAC est révisé dès que l'indicateur baisse.")
+                            p("Si 'Mécanisme de sortie' vaut oui, la révision du TAC est déclenchée par un % de baisse de cumulée calculée par rapport à l'indicateur d'abondance lors de la fixation du TAC. Noter que dans le cas d'un pourcentage à 0%, le TAC est révisé dès que l'indicateur baisse.")
                             ),
                    tabPanel("Abondance",
                             plotOutput(outputId = "Indicateur",
