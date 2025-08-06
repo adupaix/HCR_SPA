@@ -1,6 +1,6 @@
 # Règle de contrôle d'exploitation (HCR) pour la pêcherie à la langouste dans la ZEE de Saint-Paul et Amsterdam
 
-Shiny app pour tester la réaction de différentes paramétrisations de l'HCR.
+Shiny app pour tester la réaction de différentes paramétrisations de l'HCR. Quatre fichiers de données, non fournis, sont nécessaires : (i) l'historique des TAC (total allowable catch), (ii) l'historique de l'indicateur d'abondance à Saint-Paul et à Amsterdam (un fichier par île) et (iii) l'historique des captures. 
 
 ## Description des paramètres
 
@@ -9,7 +9,7 @@ Shiny app pour tester la réaction de différentes paramétrisations de l'HCR.
 - **Scénario** :
   - Historique puis chute : réaction de l'HCR dans le cas de la chute d'abondance observée dans les années 1980. On considère la série historique des CPUE et captures comme base.
   - Historique puis stabilisation : réaction de l'HCR dans le cas de la stabilisation de l'abondance à une valeur supérieure à la cible. On considère la série historique des CPUE et captures comme base.
-  - **Constante puis chute** : réaction de l'HCR dans le cas d'une chute d'abondance rapide. On part d'un équilibre au niveau de la valeur cible et fait chuter l'abondance de 15 % par an. Noter que dans le cas de ce scénario, les choix d'île et de zone n'ont pas d'influence.
+  - Constante puis chute : réaction de l'HCR dans le cas d'une chute d'abondance rapide. On part d'un équilibre au niveau de la valeur cible et fait chuter l'abondance de 15 % par an. Noter que dans le cas de ce scénario, les choix d'île et de zone n'ont pas d'influence.
   - Oscillations : réaction de l'HCR dans le cas d'oscillations de l'abondance.
 - **Ile** : Situation à Amsterdam ou Saint-Paul.
 - **Zone** : Plateau péri-insulaire complet ou application par zone (côtière ou profonde).
